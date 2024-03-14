@@ -141,9 +141,10 @@ backup_old_installation() {
   # Back up (if any) older froster installations (new path)
   if [[ -d ${froster_path} ]]; then
     mv -f ${froster_path} ${froster_backup_path}
+    echo "  ...older installation backup at: ${froster_backup_path}"
+  else
+    echo "  ...no older froster installation found"
   fi
-
-  echo "  ...older installation backup (if any): ${froster_backup_path} "
 }
 
 # Donwload froster files from repository
