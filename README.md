@@ -7,7 +7,7 @@ Froster is a user-friendly archiving tool for teams that move data between highe
 To install Froster, execute the following command into your terminal:"
 
 ```
-curl -s https://raw.githubusercontent.com/HPCNow/froster/OSHU-45-install-froster-single-command/froster | bash -s install && source ~/.bashrc
+curl -s https://raw.githubusercontent.com/HPCNow/froster/develop/froster | bash -s install && source ~/.bashrc
 ```
 
 

@@ -15,7 +15,7 @@ froster_old_path=${HOME}/.local/share/froster
 froster_backup_old_path=${HOME}/.local/share/froster.bak
 
 # TODO: change this path to correct one before merging
-current_branch=OSHU-45-install-froster-single-command
+current_branch=develop
 froster_repository_path=https://raw.githubusercontent.com/HPCNow/froster/${current_branch}
 
 # variables of pwalk third-party tool froster is using
