@@ -213,7 +213,7 @@ install_pwalk() {
   curl -s -L ${pwalk_repository} | tar xzf -
 
   # Compile pwalk tool and put exec file in froster's binaries folder
-  gcc -pthread ${pwalk_path}/pwalk.c ${pwalk_path}/exclude.c ${pwalk_path}/fileProcess.c -o ${froster_bin_path}/pwalk
+  gcc -s -pthread ${pwalk_path}/pwalk.c ${pwalk_path}/exclude.c ${pwalk_path}/fileProcess.c -o ${froster_bin_path}/pwalk
 
   # Delete downloaded pwalk files
   rm -rf ${pwalk_path}
@@ -256,7 +256,7 @@ check_apt_dependencies
 if [[ $1 == "install" || $1 == "update" ]]; then
 
   echo
-  echo "Installing last version of froster..."
+  echo "Installing latest version of froster..."
 
   # Set rw permissions on anyone in file's group
   umask 0002
