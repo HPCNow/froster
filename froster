@@ -213,7 +213,7 @@ install_pwalk() {
   curl -s -L ${pwalk_repository} | tar xzf -
 
   # Compile pwalk tool and put exec file in froster's binaries folder
-  gcc -s -pthread ${pwalk_path}/pwalk.c ${pwalk_path}/exclude.c ${pwalk_path}/fileProcess.c -o ${froster_bin_path}/pwalk
+  gcc -w -pthread ${pwalk_path}/pwalk.c ${pwalk_path}/exclude.c ${pwalk_path}/fileProcess.c -o ${froster_bin_path}/pwalk
 
   # Delete downloaded pwalk files
   rm -rf ${pwalk_path}
