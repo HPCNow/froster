@@ -85,15 +85,6 @@ check_apt_dependencies() {
     echo "  ...pip3 installed"
   fi
 
-  # Check if python3-venv is installed
-  if [[ -z $(command -v virtualenv --version) ]]; then
-    echo
-    echo "Installing python3-venv..."
-    sudo apt-get update >/dev/null 2>&1
-    sudo apt-get install -y python3-venv >/dev/null 2>&1
-    echo "  ...python3-venv installed"
-  fi
-
   # Check if gcc is installed
   if [[ -z $(command -v gcc) ]]; then
     echo
