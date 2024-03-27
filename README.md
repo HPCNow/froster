@@ -2,6 +2,34 @@
 
 Froster is a user-friendly archiving tool for teams that move data between higher cost Posix file systems and lower cost S3-like object storage systems such as AWS Glacier. Froster crawls your Posix file system metadata, recommends folders for archiving, generates checksums, and uploads your selections to Glacier or other S3-like storage. It can retrieve data back from the archive using a single command. Additionally, Froster can mount S3/Glacier storage inside your on-premise file system and also restore to an AWS EC2 instance. To install or update froster run:
 
+## Installation pre-requisites
+
+### On Debian/Ubuntu
+
+
+```
+sudo apt update
+sudo apt install -y curl python3 python3-pip python3-venv gcc lib32gcc-s1
+```
+
+### On RHEL 
+
+```
+sudo yum update
+sudo yum install -y curl python3 python3-pip python3-venv gcc lib32gcc-s1 unzip
+```
+
+### On HPC machine
+
+Please contact your administrator to install these packages:
+```
+curl python3 python3-pip python3-venv gcc lib32gcc-s1
+```
+
+## Installation
+
+To install Froster, execute the following command into your terminal:
+
 ```
 curl -s https://raw.githubusercontent.com/dirkpetersen/froster/main/install.sh | bash
 ```

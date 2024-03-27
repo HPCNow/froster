@@ -23,58 +23,6 @@ from textual.widgets import DataTable, Footer, Button
 __app__ = 'Froster, a user friendly S3/Glacier archiving tool'
 __version__ = '0.9.0.70'
 
-def main():
-        
-    if args.debug:
-        pass
-
-    if len(sys.argv) == 1:        
-        print(textwrap.dedent(f'''\n
-            For example, use one of these commands:
-              froster config 
-              froster index /your/lab/root
-              froster archive
-            or you can use one of these: 
-              'froster delete', 'froster mount' or 'froster restore'
-            '''))
-
-    # Instantiate classes required by all functions         
-    cfg = ConfigManager(args)
-    arch = Archiver(args, cfg)
-    aws = AWSBoto(args, cfg, arch)
-
-    if args.version:
-        args_version(cfg)
-
-    if args.subcmd in ['archive','delete','restore']:
-        # remove folders that are not writable from args.folders
-        errfld=[]
-        for fld in args.folders:            
-            ret = arch.test_write(fld)
-            if ret==13 or ret == 2:
-                errfld.append(fld)
-        if errfld:
-            errflds='" \n"'.join(errfld)
-            print(f'\nERROR: These folder(s) \n"{errflds}"\n must exist and you need write access to them.')
-            return False
-
-    # call a function for each sub command in our CLI
-    if args.subcmd in ['config', 'cnf']:
-        subcmd_config(args, cfg, aws)
-    elif args.subcmd in ['index', 'ind']:
-        subcmd_index(args, cfg, arch)
-    elif args.subcmd in ['archive', 'arc']:
-        subcmd_archive(args, cfg, arch, aws)
-    elif args.subcmd in ['restore', 'rst']:
-        subcmd_restore(args, cfg, arch, aws)
-    elif args.subcmd in ['delete', 'del']:
-        subcmd_delete(args, cfg, arch, aws)
-    elif args.subcmd in ['mount', 'mnt']:
-        subcmd_mount(args, cfg, arch, aws)
-    elif args.subcmd in ['umount']: #or args.unmount:
-        subcmd_umount(args, cfg)
-    elif args.subcmd in ['ssh', 'scp']: #or args.unmount:
-        subcmd_ssh(args, cfg, aws)
 
 def args_version(cfg):
     print(f'Froster version: {__version__}')
@@ -5561,7 +5509,9 @@ def parse_arguments():
 
     return parser.parse_args()
 
-if __name__ == "__main__":
+
+def main():
+
     if not sys.platform.startswith('linux'):
         print('This software currently only runs on Linux x64')
         sys.exit(1)
@@ -5569,14 +5519,65 @@ if __name__ == "__main__":
         args = parse_arguments()
         TABLECSV = '' # CSV string for DataTable
         SELECTEDFILE = '' # CSV filename to open in hotspots 
-        MAXHOTSPOTS = 0    
-        if main():
-            sys.exit(0)
-        else:
-            sys.exit(1)
+        MAXHOTSPOTS = 0  
+
+        if args.debug:
+                pass
+
+        if len(sys.argv) == 1:        
+            print(textwrap.dedent(f'''\n
+                For example, use one of these commands:
+                froster config 
+                froster index /your/lab/root
+                froster archive
+                or you can use one of these: 
+                'froster delete', 'froster mount' or 'froster restore'
+                '''))
+
+        # Instantiate classes required by all functions         
+        cfg = ConfigManager(args)
+        arch = Archiver(args, cfg)
+        aws = AWSBoto(args, cfg, arch)
+
+        if args.version:
+            args_version(cfg)
+
+        if args.subcmd in ['archive','delete','restore']:
+            # remove folders that are not writable from args.folders
+            errfld=[]
+            for fld in args.folders:            
+                ret = arch.test_write(fld)
+                if ret==13 or ret == 2:
+                    errfld.append(fld)
+            if errfld:
+                errflds='" \n"'.join(errfld)
+                print(f'\nERROR: These folder(s) \n"{errflds}"\n must exist and you need write access to them.')
+                sys.exit(1)
+
+        # call a function for each sub command in our CLI
+        if args.subcmd in ['config', 'cnf']:
+            subcmd_config(args, cfg, aws)
+        elif args.subcmd in ['index', 'ind']:
+            subcmd_index(args, cfg, arch)
+        elif args.subcmd in ['archive', 'arc']:
+            subcmd_archive(args, cfg, arch, aws)
+        elif args.subcmd in ['restore', 'rst']:
+            subcmd_restore(args, cfg, arch, aws)
+        elif args.subcmd in ['delete', 'del']:
+            subcmd_delete(args, cfg, arch, aws)
+        elif args.subcmd in ['mount', 'mnt']:
+            subcmd_mount(args, cfg, arch, aws)
+        elif args.subcmd in ['umount']: #or args.unmount:
+            subcmd_umount(args, cfg)
+        elif args.subcmd in ['ssh', 'scp']: #or args.unmount:
+            subcmd_ssh(args, cfg, aws)
+
     except KeyboardInterrupt:
         print('\nExit !')
         try:
             sys.exit(0)
         except SystemExit:
             os._exit(0)
+    except Exception as e:
+        print(f'Error: {e}')
+        sys.exit(1)
