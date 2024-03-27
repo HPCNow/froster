@@ -1,13 +1,35 @@
-from setuptools import setup, find_packages
 import platform
 import subprocess
-import os
+
+from setuptools import setup, find_packages
+
+
+def compile_pwalk():
+    # Check the user's architecture
+    arch = platform.machine()
+
+    # Compile the C tool accordingly
+    if arch == 'x86_64':
+        subprocess.check_call(['gcc', '-w', '-pthread', 'filesystem-reporting-tools/pwalk.c',
+                              'filesystem-reporting-tools/exclude.c', 'filesystem-reporting-tools/fileProcess.c', '-o', 'pwalk'])
+    elif arch == 'arm':
+        subprocess.check_call(['gcc', '-w', '-pthread', 'filesystem-reporting-tools/pwalk.c', 'filesystem-reporting-tools/exclude.c',
+                              'filesystem-reporting-tools/fileProcess.c', '-o', 'pwalk', '-march=armv7-a'])
+    # Add more elif statements for other architectures
+    else:
+        raise Exception('Unsupported architecture')
+
+
+# compilte pwalk before setup
+compile_pwalk()
+
 
 setup(
     name='froster',
     version='0.0.1',
     license='MIT',
     packages=find_packages(),
+    data_files=[('bin', ['pwalk'])],
     install_requires=[
         'duckdb<1.0',
         'textual<0.60',
@@ -23,3 +45,6 @@ setup(
         ]
     }
 )
+
+# Clean up the compiled C tool
+subprocess.check_call(['rm', 'pwalk'])
