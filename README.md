@@ -13,8 +13,6 @@ sudo apt update
 
 sudo apt install -y curl python3 python3-pip python3-venv pipx git gcc lib32gcc-s1
 
-python3 -m install requests
-
 pipx ensurepath
 ```
 
@@ -25,8 +23,6 @@ sudo yum update
 
 sudo yum install -y curl python3 python3-pip python3-venv pipx git gcc lib32gcc-s1
 
-python3 -m install requests
-
 pipx ensurepath
 ```
 
@@ -36,15 +32,22 @@ Please contact your administrator to install these packages:
 ```
 curl python3 python3-pip python3-venv pipx git gcc lib32gcc-s1
 ```
-and run these commands:
+and run this command:
 ```
-python3 -m install requests
-
 pipx ensurepath 
 ```
 
 </br>
 
+## Installation pre-requisite: Rclone
+
+Froster uses Rclone. Rclone is a free cloud storage management software. They provide an installation script:
+
+```
+sudo -v ; curl https://rclone.org/install.sh | sudo bash
+```
+
+</br>
 
 ## Installation
 
