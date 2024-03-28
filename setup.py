@@ -29,7 +29,7 @@ setup(
     version='0.0.1',
     license='MIT',
     packages=find_packages(),
-    data_files=[('bin', ['pwalk'])],
+    data_files=[('tools', ['pwalk'])],
     install_requires=[
         'duckdb<1.0',
         'textual<0.60',

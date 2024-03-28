@@ -14,7 +14,6 @@ import csv
 import platform
 import asyncio
 import stat
-import urllib3
 import datetime
 import tarfile
 import zipfile
@@ -66,8 +65,8 @@ def args_version(cfg):
     print(f'Python version:\n{sys.version}')
     try:
         print('* Pwalk ----- ')
-        print('  Binary:', shutil.which('pwalk'))
-        print('  Version:', subprocess.run([os.path.join(cfg.binfolderx, 'pwalk'), '--version'],
+        print('  Binary:', os.path.join(sys.prefix, 'tools', 'pwalk'))
+        print('  Version:', subprocess.run([os.path.join(sys.prefix, 'tools', 'pwalk'), '--version'],
                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stderr.split('\n')[0])
         print('* Rclone ---- ')
         print('  Binary:', shutil.which('rclone'))
@@ -113,13 +112,6 @@ def subcmd_config(args, cfg, aws):
         first_time = False
     if binfolder != cfg.binfolder:
         cfg.write('general', 'binfolder', cfg.binfolder)
-
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    if not os.path.exists(os.path.join(cfg.binfolderx, 'pwalk')):
-        print(" Installing pwalk ...", flush=True)
-        cfg.copy_compiled_binary_from_github('fizwit', 'filesystem-reporting-tools',
-                                             'gcc -pthread pwalk.c exclude.c fileProcess.c -o pwalk',
-                                             'pwalk', cfg.binfolderx)
 
     if not cfg.read('general', 'no-rclone-download'):
         rclonepath = os.path.join(cfg.binfolderx, 'rclone')
@@ -957,9 +949,10 @@ class Archiver:
         with tempfile.NamedTemporaryFile() as tmpfile:
             with tempfile.NamedTemporaryFile() as tmpfile2:
                 if not self.args.pwalkcsv:
-                    pwalkcmd = 'pwalk --NoSnap --one-file-system --header'
+                    pwalk_path = os.path.join(sys.prefix, 'tools', 'pwalk')
+                    pwalkcmd = f'{pwalk_path} --NoSnap --one-file-system --header'
                     # 2> {tmpfile2.name}.err'
-                    mycmd = f'{self.cfg.binfolderx}/{pwalkcmd} "{pwalkfolder}" > {tmpfile2.name}'
+                    mycmd = f'{pwalkcmd} "{pwalkfolder}" > {tmpfile2.name}'
                     self.cfg.printdbg(f' Running {mycmd} ...', flush=True)
                     ret = subprocess.run(mycmd, shell=True,
                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -976,10 +969,11 @@ class Archiver:
                     pwalkcsv = self.args.pwalkcsv
                 with tempfile.NamedTemporaryFile() as tmpfile3:
                     # copy/backup pwalk csv file to network location
-                    if args.pwalkcopy:
+
+                    if self.args.pwalkcopy:
                         print(
-                            f' Copying and cleaning {pwalkcsv} to {args.pwalkcopy}, please wait ... ', flush=True, end="")
-                        mycmd = f'iconv -f ISO-8859-1 -t UTF-8 {pwalkcsv} > {args.pwalkcopy}'
+                            f' Copying and cleaning {pwalkcsv} to {self.args.pwalkcopy}, please wait ... ', flush=True, end="")
+                        mycmd = f'iconv -f ISO-8859-1 -t UTF-8 {pwalkcsv} > {self.args.pwalkcopy}'
                         self.cfg.printdbg(f' Running {mycmd} ...', flush=True)
                         result = subprocess.run(mycmd, shell=True)
                         print('Done!', flush=True)
@@ -1244,7 +1238,7 @@ class Archiver:
         print(f'\nProcessing hotspots file {SELECTEDFILE}!')
 
         agefld = 'AccD'
-        if args.agemtime:
+        if self.args.agemtime:
             agefld = 'ModD'
 
         # Initialize a connection to an in-memory database
@@ -1256,12 +1250,12 @@ class Archiver:
             f"CREATE TABLE hs AS SELECT * FROM read_csv_auto('{SELECTEDFILE}')")
 
         # Now, you can run SQL queries on this virtual table
-        if args.older > 0:
+        if self.args.older > 0:
             rows = conn.execute(
-                f"SELECT * FROM hs WHERE {agefld} > {args.older} and GiB > {args.larger} ").fetchall()
-        elif args.newer > 0:
+                f"SELECT * FROM hs WHERE {agefld} > {self.args.older} and GiB > {self.args.larger} ").fetchall()
+        elif self.args.newer > 0:
             rows = conn.execute(
-                f"SELECT * FROM hs WHERE {agefld} < {args.newer} and GiB > {args.larger} ").fetchall()
+                f"SELECT * FROM hs WHERE {agefld} < {self.args.newer} and GiB > {self.args.larger} ").fetchall()
         else:
             print('You must either specify --older or --newer')
             conn.close()
@@ -2816,7 +2810,7 @@ class SlurmEssentials:
                     f"Error running sbatch: {result.stderr.strip()}")
             sys.exit(1)
         job_id = int(result.stdout.split()[-1])
-        if args.debug:
+        if self.args.debug:
             oscript.seek(0)
             with open(f'submitted-{job_id}.sh', "w", encoding="utf-8") as file:
                 file.write(oscript.read())
@@ -3447,7 +3441,7 @@ class AWSBoto:
         bootstrap_restore = self._ec2_user_space_script(iid)
 
         # part 2, prep restoring .....
-        for folder in args.folders:
+        for folder in self.args.folders:
             refolder = os.path.join(os.path.sep, 'restored', folder[1:])
             bootstrap_restore += f'\nmkdir -p "{refolder}"'
             bootstrap_restore += f'\nln -s "{refolder}" ~/restored-$(basename "{folder}")'
@@ -4297,7 +4291,7 @@ class AWSBoto:
             elif error_code == 'AccessDenied':
                 self.cfg.printdbg(
                     f'Access denied to SES advanced features! Please check your IAM permissions. \nError: {e}')
-                if not args.debug:
+                if not self.args.debug:
                     print(
                         ' Cannot use SES email features to send you status messages: AccessDenied')
             else:
@@ -5586,25 +5580,6 @@ class ConfigManager:
                 s.close()
         print("Timeout reached without SSH server being ready.")
         return False
-
-    def copy_compiled_binary_from_github(self, user, repo, compilecmd, binary, targetfolder):
-        tarball_url = f"https://github.com/{user}/{repo}/archive/refs/heads/main.tar.gz"
-        response = requests.get(tarball_url, stream=True, allow_redirects=True)
-        response.raise_for_status()
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            reposfolder = os.path.join(tmpdirname,  f"{repo}-main")
-            with tarfile.open(fileobj=response.raw, mode="r|gz") as tar:
-                tar.extractall(path=tmpdirname)
-                reposfolder = os.path.join(tmpdirname,  f"{repo}-main")
-                os.chdir(reposfolder)
-                result = subprocess.run(compilecmd, shell=True)
-                if result.returncode == 0:
-                    print(f"Compilation successful: {compilecmd}")
-                    shutil.copy2(binary, targetfolder, follow_symlinks=True)
-                    if not os.path.exists(os.path.join(targetfolder, binary)):
-                        print(f'Failed copying {binary} to {targetfolder}')
-                else:
-                    print(f"Compilation failed: {compilecmd}")
 
     def copy_binary_from_zip_url(self, zipurl, binary, subwildcard, targetfolder):
         with tempfile.TemporaryDirectory() as tmpdirname:
