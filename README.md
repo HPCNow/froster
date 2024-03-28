@@ -37,7 +37,10 @@ pipx ensurepath
 
 ## Installation pre-requisite: Rclone
 
-Froster uses Rclone. Rclone is a free cloud storage management software. They provide an installation script:
+Froster uses [Rclone](https://rclone.org/).
+Rclone is a free cloud storage management software.
+Installation may take a while and you do NOT need to run 'rclone config' after installation.
+They provide an installation command script:
 
 ```
 sudo -v ; curl https://rclone.org/install.sh | sudo bash
@@ -47,6 +50,7 @@ sudo -v ; curl https://rclone.org/install.sh | sudo bash
 
 ## Installation
 
+After you installed the pre-requisites, close and open the terminal again to refresh the environment.
 To install Froster, execute the following command into your terminal:
 
 ```
