@@ -10,9 +10,7 @@ Froster is a user-friendly archiving tool for teams that move data between highe
 
 ```
 sudo apt update
-
 sudo apt install -y curl python3 python3-pip python3-venv pipx git gcc lib32gcc-s1
-
 pipx ensurepath
 ```
 
@@ -20,9 +18,7 @@ pipx ensurepath
 
 ```
 sudo yum update
-
 sudo yum install -y curl python3 python3-pip python3-venv pipx git gcc lib32gcc-s1
-
 pipx ensurepath
 ```
 
